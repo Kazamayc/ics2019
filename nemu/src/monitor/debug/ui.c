@@ -40,6 +40,7 @@ static int cmd_help(char *args);
 static int cmd_info(char *args);
 static int cmd_si(char *args);
 static int cmd_x(char *args);
+static int cmd_p(char *args);
 
 static struct {
   char *name;
@@ -52,6 +53,7 @@ static struct {
   { "si", "The program executes N instructions in a single step, N defaults to 1", cmd_si},
   { "info", "Output register value", cmd_info},
   { "x", "Find the value of the expression, use the result as the starting memory address, and output N consecutive 4 bytes in hexadecimal form", cmd_x },
+  { "p", "Print expressions", cmd_p },
 
   /* TODO: Add more commands */
 
@@ -130,8 +132,12 @@ static int cmd_x(char *args) {
     printf("Wrong parameter1\n");
     return 0;
   }
-
-  int EXPR = strtol(strtok(NULL, " "),NULL,16);
+  char* EXPR_BUFFER = strtok(NULL, " ");
+  if (EXPR_BUFFER==NULL) {
+    printf("Wrong parameter2\n");
+    return 0;
+  }
+  int EXPR = strtol(EXPR_BUFFER,NULL,16);
   if (EXPR==0) {
     printf("Wrong parameter2\n");
     return 0;
@@ -145,6 +151,23 @@ static int cmd_x(char *args) {
     printf("0x%x:    0x%x\n", EXPR+i*5, paddr_read(EXPR+i*4, 4)); //修改count为表达式
   }
   return 0;
+}
+
+static int cmd_p(char *args) {
+  if (args == NULL) {
+    printf("No parameters\n");
+    return 0;
+  }
+  bool success = true;
+  int num = expr(args,&success);
+  if(success==false) {
+    printf("Wrong expression\n");
+    return 0;
+  }else {
+    printf("0x%x or %dD\n",num,num);
+    return 0;
+  }
+
 }
 
 void ui_mainloop(int is_batch_mode) {

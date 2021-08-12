@@ -1,14 +1,21 @@
+# 开始是检测isa指令集
 NAME = nemu
 
 ifneq ($(MAKECMDGOALS),clean) # ignore check for make clean
+# ifneq(arg1,arg2)，判断arg1和arg2的值是否相同，如果不同则为真。
+# 只要shell输入的不是make clean,都会进入下面的内容
 ISA ?= x86
+# ?= 是如果没有被赋值过就赋予等号后面的值
 ISAS = $(shell ls src/isa/)
 $(info Building $(ISA)-$(NAME))
-
+# 输出Building x86-nemu
 ifeq ($(filter $(ISAS), $(ISA)), ) # ISA must be valid
+# 查看isa是不是正确，不正确就报错
 $(error Invalid ISA. Supported: $(ISAS))
+# 输出警告信息，并且让程序退出
 endif
 endif
+
 
 
 INC_DIR += ./include ./src/isa/$(ISA)/include
@@ -16,6 +23,7 @@ INC_DIR += ./include ./src/isa/$(ISA)/include
 BUILD_DIR ?= ./build
 
 ifdef SHARE
+# 如果参数值为空，则为真
 SO = -so
 SO_CFLAGS = -fPIC -D_SHARE=1
 SO_LDLAGS = -shared -fPIC

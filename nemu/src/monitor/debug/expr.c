@@ -18,6 +18,7 @@ typedef struct token {
 int check_parentheses(Token* start, Token* end);
 Token* calc_op(Token* start, Token* end);
 void check_Negative(Token* start, Token* end);
+int eval(Token* start, Token* end);
 
 static struct rule {
   char *regex;
@@ -120,11 +121,8 @@ uint32_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
-
-  /* TODO: Insert codes to evaluate the expression. */
-  TODO();
-
-  return 0;
+  int num = eval(tokens,tokens+nr_token-1);
+  return num;
 }
 
 int eval(Token* start, Token* end) {
