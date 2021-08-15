@@ -121,6 +121,8 @@ uint32_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
+  check_Negative(tokens,tokens+nr_token-1);
+  // 找到负数将符号类型进行替换
   int num = eval(tokens,tokens+nr_token-1);
   return num;
 }
@@ -140,9 +142,11 @@ int eval(Token* start, Token* end) {
     return eval(start + 1, end - 1);
   }
   else{
-    int val1,val2=0;
+    int val1=0,val2=0;
     Token *op = calc_op(start, end);
-    val1 = eval(start, op - 1);
+    if(op->type != TK_NEG) {
+      val1 = eval(start, op - 1);  
+    } 
     val2 = eval(op + 1, end);
     switch (op->type) {
       case '+': return val1 + val2;
@@ -158,7 +162,7 @@ int eval(Token* start, Token* end) {
 int check_parentheses(Token* start, Token* end) {
   int sign = 0;
   int count = 0;
-  if (start->type!='(' && end->type!=')' ) {
+  if (start->type!='(' || end->type!=')' ) {
     return false;
   }
   for(Token* sym = start; sym<end; sym++) {
@@ -214,12 +218,10 @@ Token* calc_op(Token* start, Token* end) {
 }
 
 void check_Negative(Token* start, Token* end) {
-  Token* op = start;
   for(; start<=end; start++) {
     if(start->type=='-' && (start-1)->type!=TK_DEC && (start-1)->type!=')') {
       start->type=TK_NEG;
     }
   }
-  start=op;
   return;
 }
