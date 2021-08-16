@@ -41,17 +41,26 @@ void reg_test() {
 }
 
 void isa_reg_display() {
-  printf("EAX:0x%x  ",cpu.eax);
-  printf("EBX:0x%x  ",cpu.ebx);
-  printf("EDX:0x%x  ",cpu.edx);
+  printf("EAX:0x%x\n",cpu.eax);
+  printf("ECX:0x%x\n",cpu.ecx);
+  printf("EDX:0x%x\n",cpu.edx);
   printf("EBX:0x%x\n",cpu.ebx);
-  printf("ESP:0x%x  ",cpu.esp);
-  printf("EBP:0x%x  ",cpu.ebp);
-  printf("ESI:0x%x  ",cpu.esi);
+  printf("ESP:0x%x\n",cpu.esp);
+  printf("EBP:0x%x\n",cpu.ebp);
+  printf("ESI:0x%x\n",cpu.esi);
   printf("EDI:0x%x\n",cpu.edi);
   return;
 }
 
-uint32_t isa_reg_str2val(const char *s, bool *success) {
+uint32_t isa_reg_str2val(const char *s) {
+  if(strcmp("$eax", s)==0) return cpu.eax;
+  if(strcmp("$ecx", s)==0) return cpu.ecx;
+  if(strcmp("$edx", s)==0) return cpu.edx;
+  if(strcmp("$ebx", s)==0) return cpu.ebx;
+  if(strcmp("$esp", s)==0) return cpu.esp;
+  if(strcmp("$ebp", s)==0) return cpu.ebp;
+  if(strcmp("$esi", s)==0) return cpu.esi;
+  if(strcmp("$edi", s)==0) return cpu.edi;
+  panic("\nError register");
   return 0;
 }

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 enum {
-  TK_NOTYPE = 256, TK_DEC, TK_NEG,
+  TK_NOTYPE = 256, TK_DEC, TK_NEG, TK_POINTER, TK_NOEQU, TK_EQU, TK_AND, TK_REG
   /* TODO: Add more token types */
 
 };
@@ -15,9 +15,11 @@ typedef struct token {
   int type;
   char str[32];
 } Token;
+uint32_t isa_reg_str2val(const char *s);
 int check_parentheses(Token* start, Token* end);
 Token* calc_op(Token* start, Token* end);
 void check_Negative(Token* start, Token* end);
+void check_Point(Token* start, Token* end);
 int eval(Token* start, Token* end);
 
 static struct rule {
@@ -30,12 +32,16 @@ static struct rule {
    */
   {"[0-9]+", TK_DEC},     // dec
   {" +", TK_NOTYPE},      // spaces
-  {"\\*", '*'},           // mul
-  {"/", '/'},             // div
-  {"\\(", '('},           // bra1
-  {"\\)", ')'},           // bra2
-  {"-", '-'},             // sub
-  {"\\+", '+'},           // plusd
+  {"\\*", '*'},           // mul 3
+  {"/", '/'},             // div 3
+  {"\\(", '('},           // bra1 1
+  {"\\)", ')'},           // bra2 1
+  {"-", '-'},             // sub 4
+  {"\\+", '+'},           // plusd 4
+  {"==", TK_EQU},         // equal 5
+  {"!=", TK_NOEQU},       // no equal 5
+  {"&&", TK_AND},         // and 6
+  {"\\$[a-z][a-z][a-z]", TK_REG},
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -59,7 +65,6 @@ void init_regex() {
     }
   }
 }
-
 
 
 static Token tokens[32] __attribute__((used)) = {};
@@ -97,6 +102,10 @@ static bool make_token(char *e) {
           case '/':
           case '*':
           case TK_DEC:
+          case TK_EQU:
+          case TK_NOEQU:
+          case TK_AND:
+          case TK_REG:
           	tokens[nr_token].type = rules[i].token_type;
             strncpy(tokens[nr_token++].str, substr_start, substr_len);
             tokens[nr_token].str[substr_len] = '\0';
@@ -123,12 +132,14 @@ uint32_t expr(char *e, bool *success) {
   }
   check_Negative(tokens,tokens+nr_token-1);
   // 找到负数将符号类型进行替换
+  check_Point(tokens,tokens+nr_token-1);
+  // 替换指针
   int num = eval(tokens,tokens+nr_token-1);
   return num;
 }
 
 int eval(Token* start, Token* end) {
-  if (start == end) {
+  if (start == end && start->type != TK_REG) {
     return atoi(start->str);
     /* Single token.
      * For now this token should be a number.
@@ -144,17 +155,28 @@ int eval(Token* start, Token* end) {
   else{
     int val1=0,val2=0;
     Token *op = calc_op(start, end);
-    if(op->type != TK_NEG) {
-      val1 = eval(start, op - 1);  
-    } 
-    val2 = eval(op + 1, end);
+    if(op->type==TK_NEG) {
+      val2 = eval(op + 1, end);
+    }else if(op->type==TK_REG) {
+      val1=0;
+      val2=0;
+    }else {
+      val1 = eval(start, op - 1);
+      val2 = eval(op + 1, end);
+    }
+
     switch (op->type) {
       case '+': return val1 + val2;
       case '-': return val1 - val2;
       case '*': return val1 * val2;
       case '/': return val1 / val2;
-      case TK_NEG : return val2*-1;
-      default: panic("Error expression");
+      case TK_NEG: return val2 * -1;
+      case TK_EQU: return val1 == val2;
+      case TK_NOEQU: return val1 != val2;
+      case TK_POINTER: return 1;
+      case TK_AND: return val1 && val2;
+      case TK_REG: return isa_reg_str2val(op->str);
+      default: panic("Error expression\n");
     }
   }
 }
@@ -203,15 +225,27 @@ Token* calc_op(Token* start, Token* end) {
     if(sym->type==TK_DEC) {
       continue;
     }
-    if(sign<=2&&(sym->type=='+'||sym->type=='-')) {
+    if(sign<=5&&sym->type==TK_AND) {
       op=sym;
-      sign = 2;
+      sign=5;
     }
-    else if(sign<=1&&(sym->type=='*'||sym->type=='/')) {
+    if(sign<=4&&(sym->type==TK_EQU||sym->type==TK_NOEQU)) {
+      op=sym;
+      sign=4;
+    }
+    if(sign<=3&&(sym->type=='+'||sym->type=='-')) {
+      op=sym;
+      sign=3;
+    }
+    else if(sign<=2&&(sym->type=='*'||sym->type=='/')) {
+      op=sym;
+      sign=2;
+    }else if(sign<=1&&(sym->type==TK_NEG||sym->type==TK_POINTER)) {
       op=sym;
       sign=1;
-    }else if(sign==0&&(sym->type==TK_NEG)) {
+    }else if(sign==0&&sym->type==TK_REG) {
       op=sym;
+      printf("op:%s",op->str);
     }
   }
   return op;
@@ -224,4 +258,9 @@ void check_Negative(Token* start, Token* end) {
     }
   }
   return;
+}
+void check_Point(Token* start, Token* end) {
+  //for(; start<=end; start++) {
+  //  if(start->type=='*'&& (start+1)->type==TK_ )
+  //}
 }
