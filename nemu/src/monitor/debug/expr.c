@@ -154,9 +154,14 @@ int eval(Token* start, Token* end) {
   }
   else{
     int val1=0,val2=0;
+    int addr=0;
     Token *op = calc_op(start, end);
     if(op->type==TK_NEG) {
       val2 = eval(op + 1, end);
+    }else if(op->type==TK_POINTER) {
+      val2 = eval(op+1, end);
+      addr = vaddr_read(val2,4);
+      Log("addr=%u(0x%x), value=%d(0x%08x)\n",val2,val2,addr,addr);
     }else if(op->type==TK_REG) {
       val1=0;
       val2=0;
@@ -169,11 +174,15 @@ int eval(Token* start, Token* end) {
       case '+': return val1 + val2;
       case '-': return val1 - val2;
       case '*': return val1 * val2;
-      case '/': return val1 / val2;
-      case TK_NEG: return val2 * -1;
+      case '/':
+        if(val2 == 0){
+          panic("ZeroDivisionError: integer division or modulo by zero\n");
+        }
+        return val1 / val2;
+      case TK_NEG: return -val2;
       case TK_EQU: return val1 == val2;
       case TK_NOEQU: return val1 != val2;
-      case TK_POINTER: return 1;
+      case TK_POINTER: return addr;
       case TK_AND: return val1 && val2;
       case TK_REG: return isa_reg_str2val(op->str);
       default: panic("Error expression\n");
@@ -260,7 +269,10 @@ void check_Negative(Token* start, Token* end) {
   return;
 }
 void check_Point(Token* start, Token* end) {
-  //for(; start<=end; start++) {
-  //  if(start->type=='*'&& (start+1)->type==TK_ )
-  //}
+  for(; start<=end; start++) {
+    if(start->type=='*' && (start-1)->type!=TK_DEC && (start-1)->type!=')') {
+      start->type=TK_POINTER;
+    }
+  }
+  return;
 }
