@@ -1,6 +1,7 @@
 #include "nemu.h"
 #include "monitor/monitor.h"
 #include "monitor/watchpoint.h"
+extern WP* head;
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -60,8 +61,22 @@ void cpu_exec(uint64_t n) {
   }
   log_clearbuf();
 
-    /* TODO: check watchpoints here. */
 
+  bool success;
+  int res, flag = 0;
+  for(WP *tmp = head; tmp; tmp = tmp->next){
+    res = expr(tmp->wp_expr, &success);
+    // 这里不需要检测success，因为之前检测过一次了
+    if(res != tmp->value){
+      flag = 1;
+      tmp->value = res;
+    }
+  }
+  if(flag){
+    printf("Watchpoint triggered!\n");
+    nemu_state.state = NEMU_STOP;
+  }
+  /* TODO: check watchpoints here. */
 #endif
 
   g_nr_guest_instr ++;

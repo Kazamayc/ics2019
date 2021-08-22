@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-
+extern WP* head;
 void cpu_exec(uint64_t);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
@@ -41,6 +41,7 @@ static int cmd_info(char *args);
 static int cmd_si(char *args);
 static int cmd_x(char *args);
 static int cmd_p(char *args);
+static int cmd_w(char *args);
 
 static struct {
   char *name;
@@ -54,6 +55,7 @@ static struct {
   { "info", "Output register value", cmd_info},
   { "x", "Find the value of the expression, use the result as the starting memory address, and output N consecutive 4 bytes in hexadecimal form", cmd_x },
   { "p", "Print expressions", cmd_p },
+  { "w", "Set watchpoints", cmd_w},
 
   /* TODO: Add more commands */
 
@@ -87,7 +89,7 @@ static int cmd_help(char *args) {
 
 static int cmd_info(char *args) {
   if (args == NULL) {
-    printf("Please input the info r\n");
+    printf("Please input the info r or info w\n");
     return 0;
   }
   char *arg = strtok(NULL, " ");
@@ -97,8 +99,13 @@ static int cmd_info(char *args) {
   }
   if (strcmp(arg, "r") == 0) {
     isa_reg_display();
-  }
-  else {
+  }else if(strcmp(arg,"w") == 0) {
+    printf("%-6s%-20s%-10s\n","Num", "Experssion", "Result");
+    for(WP* tmp = head;tmp;tmp = tmp->next){
+      printf("%-6d%-20s%-6d\n", tmp->NO, tmp->wp_expr, tmp->value);
+    }
+    return 0;
+  }else {
     printf("Info is imperfect\n");
   }
   return 0;
@@ -168,6 +175,19 @@ static int cmd_p(char *args) {
     return 0;
   }
 
+}
+static int cmd_w(char *args) {
+  bool success;
+  int res;
+  res = expr(args, &success);
+  if(!success){
+    printf("Wrong experssion!\n");
+    return 0;
+  }
+  WP *wp = new_wp();
+  wp->value = res;
+  strcpy(wp->wp_expr, args);
+  return 0;
 }
 
 void ui_mainloop(int is_batch_mode) {
