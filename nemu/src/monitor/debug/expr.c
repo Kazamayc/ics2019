@@ -254,7 +254,6 @@ Token* calc_op(Token* start, Token* end) {
       sign=1;
     }else if(sign==0&&sym->type==TK_REG) {
       op=sym;
-      printf("op:%s",op->str);
     }
   }
   return op;

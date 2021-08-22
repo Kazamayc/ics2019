@@ -102,7 +102,7 @@ static int cmd_info(char *args) {
   }else if(strcmp(arg,"w") == 0) {
     printf("%-6s%-20s%-10s\n","Num", "Experssion", "Result");
     for(WP* tmp = head;tmp;tmp = tmp->next){
-      printf("%-6d%-20s%-6d\n", tmp->NO, tmp->wp_expr, tmp->value);
+      printf("%-6d%-20s0x%-6x\n", tmp->NO, tmp->wp_expr, tmp->value);
     }
     return 0;
   }else {
@@ -177,7 +177,7 @@ static int cmd_p(char *args) {
 
 }
 static int cmd_w(char *args) {
-  bool success;
+  bool success=true;
   int res;
   res = expr(args, &success);
   if(!success){
