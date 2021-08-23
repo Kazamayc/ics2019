@@ -3,7 +3,9 @@
 
 static inline void set_width(int width) {
   if (width == 0) {
+    // 如果操作数的宽度设置为0，表示仅仅靠操作码判断，操作数的宽度不能确定
     width = decinfo.isa.is_operand_size_16 ? 2 : 4;
+    // 需要通过上面的decinfo.isa.is_operand_size_16来判断
   }
   decinfo.src.width = decinfo.dest.width = decinfo.src2.width = width;
 }
@@ -194,7 +196,10 @@ static make_EHelper(2byte_esc) {
 
 void isa_exec(vaddr_t *pc) {
   uint32_t opcode = instr_fetch(pc, 1);
+  // 取值
   decinfo.opcode = opcode;
   set_width(opcode_table[opcode].width);
+  // 用操作码对数组(译码查找表)进行索引
+  // 这里是设置操作数的宽度
   idex(pc, &opcode_table[opcode]);
 }
