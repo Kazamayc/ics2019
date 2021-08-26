@@ -5,6 +5,10 @@
         "reg.h": "c",
         "*.t": "c",
         "watchpoint.h": "c",
-        "readline.h": "c"
+        "readline.h": "c",
+        "typeinfo": "cpp",
+        "exec.h": "c",
+        "all-instr.h": "c",
+        "diff-test.h": "c"
     }
 }

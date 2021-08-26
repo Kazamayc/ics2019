@@ -203,3 +203,4 @@ void isa_exec(vaddr_t *pc) {
   // 这里是设置操作数的宽度
   idex(pc, &opcode_table[opcode]);
 }
+

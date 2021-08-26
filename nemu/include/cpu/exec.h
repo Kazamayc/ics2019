@@ -7,7 +7,7 @@
 
 #define make_EHelper(name) void concat(exec_, name) (vaddr_t *pc)
 typedef void (*EHelper) (vaddr_t *);
-
+// EHelper是一个指向函数的指针
 #include "cpu/decode.h"
 
 typedef struct {
